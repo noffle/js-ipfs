@@ -8,6 +8,7 @@ const Block = blocks.Block
 const mDAG = require('ipfs-merkle-dag')
 const DAGNode = mDAG.DAGNode
 const DAGService = mDAG.DAGService
+const importer = require('ipfs-data-importing').import
 
 exports = module.exports = IPFS
 
@@ -281,6 +282,14 @@ function IPFS (repo) {
         }
         callback(null, res)
       })
+    }
+  }
+
+  this.files = {
+    add: (path, options, callback) => {
+      options.path = path
+      options.dagService = dagS
+      importer(options, callback)
     }
   }
 }
