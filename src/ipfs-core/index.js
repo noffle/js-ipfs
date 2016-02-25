@@ -1,14 +1,14 @@
-'use strict'
-
 const defaultRepo = require('./default-repo')
-// const bl = require('bl')
 const blocks = require('ipfs-blocks')
 const BlockService = blocks.BlockService
 const Block = blocks.Block
 const mDAG = require('ipfs-merkle-dag')
 const DAGNode = mDAG.DAGNode
 const DAGService = mDAG.DAGService
-const peerId = require('peer-id')
+const PeerId = require('peer-id')
+const PeerInfo = require('peer-info')
+const libp2p = require('libp2p-ipfs')
+const multiaddr = require('multiaddr')
 
 exports = module.exports = IPFS
 
@@ -23,6 +23,8 @@ function IPFS (repo) {
 
   const blockS = new BlockService(repo)
   const dagS = new DAGService(blockS)
+
+  var libp2pNode
 
   this.version = (opts, callback) => {
     if (typeof opts === 'function') {
@@ -53,7 +55,7 @@ function IPFS (repo) {
         if (err) {
           return callback(err)
         }
-        var pid = peerId.createFromPrivKey(config.Identity.PrivKey)
+        var pid = PeerId.createFromPrivKey(config.Identity.PrivKey)
         callback(null, {
           ID: config.Identity.PeerID,
           PublicKey: pid.pubKey,
@@ -124,7 +126,7 @@ function IPFS (repo) {
     replace: (config, callback) => {
       repo.config.set(config, callback)
     },
-    show: callback => {
+    show: (callback) => {
       repo.config.get((err, config) => {
         if (err) { return callback(err) }
         callback(null, config)
@@ -280,5 +282,29 @@ function IPFS (repo) {
         callback(null, res)
       })
     }
+  }
+
+  this.libp2p = {
+    start: (options, callback) => {
+      // create libp2pNode and make it to listen
+      // patch this.libp2p with .routing .records and .swarm
+      this.config.show((err, config) => {
+        if (err) {
+          return callback(err)
+        }
+        options.multiaddrs = { tcp: multiaddr(config.Addresses.Swarm[0]) }
+        this.nodeId = PeerId.createFromPrivKey(config.Identity.PrivKey)
+
+        this.nodeInfo = new PeerInfo(this.nodeId, [])
+        options.peer = this.nodeInfo
+
+        libp2pNode = libp2p(options)
+        this.libp2p.swarm = libp2pNode.swarm
+        this.libp2p.routing = libp2pNode.routing
+        this.libp2p.records = libp2pNode.records
+        libp2pNode.listen(callback)
+      })
+    },
+    stop: (options, callback) => {}
   }
 }

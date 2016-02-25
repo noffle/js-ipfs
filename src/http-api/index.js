@@ -48,6 +48,17 @@ exports.start = (callback) => {
     // load routes
     require('./routes')
 
+    // start libp2p
+    ipfs.libp2p.start({}, (err) => {
+      if (err) {
+        console.log(err)
+      }
+      ipfs.nodeInfo.multiaddrs.forEach((multiaddr) => {
+        console.log('Swarm listening on', multiaddr.toString())
+      })
+    })
+
+    // start http-api
     server.start((err) => {
       if (err) {
         return callback(err)
