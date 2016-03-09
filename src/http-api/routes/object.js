@@ -1,10 +1,13 @@
 const api = require('./../index.js').server.select('API')
 const resources = require('./../resources')
 
-// TODO
-
 api.route({
-  method: 'GET',
-  path: '/api/v0/object',
-  handler: resources.object
+  method: '*',
+  path: '/api/v0/object/new',
+  config: {
+    pre: [
+      { method: resources.object.new.parseArgs, assign: 'args' }
+    ],
+    handler: resources.object.new.handler
+  }
 })
