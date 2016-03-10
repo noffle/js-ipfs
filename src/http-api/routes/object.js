@@ -11,3 +11,14 @@ api.route({
     handler: resources.object.new.handler
   }
 })
+
+api.route({
+  method: '*',
+  path: '/api/v0/object/get',
+  config: {
+    pre: [
+      { method: resources.object.get.parseArgs, assign: 'args' }
+    ],
+    handler: resources.object.get.handler
+  }
+})

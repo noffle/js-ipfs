@@ -27,7 +27,11 @@ module.exports = Command.extend({
       }
 
       console.log(JSON.stringify({
-        Links: obj.links,
+        Links: obj.links.map((link) => ({
+          Name: link.name,
+          Hash: bs58.encode(link.hash).toString(),
+          Size: link.size
+        })),
         Data: obj.data.toString()
       }))
     })

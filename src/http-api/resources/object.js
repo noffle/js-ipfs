@@ -44,3 +44,48 @@ exports.new = {
     })
   }
 }
+
+exports.get = {
+  // pre request handler that parses the args and returns `key` which is assigned to `request.pre.args`
+  parseArgs: (request, reply) => {
+    if (!request.query.arg) {
+      return reply("Argument 'key' is required").code(400).takeover()
+    }
+
+    try {
+      return reply({
+        key: new Buffer(bs58.decode(request.query.arg))
+      })
+    } catch (err) {
+      log.error(err)
+      return reply({
+        Message: 'invalid ipfs ref path',
+        Code: 0
+      }).code(500).takeover()
+    }
+  },
+
+  // main route handler which is called after the above `parseArgs`, but only if the args were valid
+  handler: (request, reply) => {
+    const key = request.pre.args.key
+
+    ipfs.object.get(key, (err, obj) => {
+      if (err) {
+        log.error(err)
+        return reply({
+          Message: 'Failed to get object: ' + err,
+          Code: 0
+        }).code(500)
+      }
+
+      return reply({
+        Links: obj.links.map((link) => ({
+          Name: link.name,
+          Hash: bs58.encode(link.hash).toString(),
+          Size: link.size
+        })),
+        Data: obj.data.toString()
+      })
+    })
+  }
+}
