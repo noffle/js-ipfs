@@ -4,7 +4,7 @@ const expect = require('chai').expect
 const nexpect = require('nexpect')
 const httpAPI = require('../../src/http-api')
 
-describe('object', () => {
+describe.only('object', () => {
   describe('api offline', () => {
     it('new', (done) => {
       nexpect.spawn('node', [process.cwd() + '/src/cli/bin.js', 'object', 'new'])
@@ -27,6 +27,17 @@ describe('object', () => {
              .to.deep.equal([])
           expect(result.Data)
              .to.equal('')
+          done()
+        })
+    })
+
+    it('put', (done) => {
+      nexpect.spawn('node', [process.cwd() + '/src/cli/bin.js', 'object', 'put', process.cwd() + '/tests/test-cli/node.json'])
+        .run((err, stdout, exitcode) => {
+          expect(err).to.not.exist
+          expect(exitcode).to.equal(0)
+          expect(stdout[0])
+             .to.equal('added QmZZmY4KCu9r3e7M2Pcn46Fc5qbn6NpzaAGaYb22kbfTqm')
           done()
         })
     })
@@ -68,6 +79,17 @@ describe('object', () => {
              .to.deep.equal([])
           expect(result.Data)
              .to.equal('')
+          done()
+        })
+    })
+
+    it('put', (done) => {
+      nexpect.spawn('node', [process.cwd() + '/src/cli/bin.js', 'object', 'put', process.cwd() + '/tests/test-cli/node.json'])
+        .run((err, stdout, exitcode) => {
+          expect(err).to.not.exist
+          expect(exitcode).to.equal(0)
+          expect(stdout[0])
+             .to.equal('added QmZZmY4KCu9r3e7M2Pcn46Fc5qbn6NpzaAGaYb22kbfTqm')
           done()
         })
     })
