@@ -41,6 +41,23 @@ describe('object', () => {
           done()
         })
     })
+
+    it('stat', (done) => {
+      nexpect.spawn('node', [process.cwd() + '/src/cli/bin.js', 'object', 'stat', 'QmZZmY4KCu9r3e7M2Pcn46Fc5qbn6NpzaAGaYb22kbfTqm'])
+        .run((err, stdout, exitcode) => {
+          expect(err).to.not.exist
+          expect(exitcode).to.equal(0)
+          expect(stdout[0])
+             .to.equal('NumLinks: 1')
+          expect(stdout[1])
+             .to.equal('BlockSize: 60')
+          expect(stdout[2])
+             .to.equal('LinksSize: 8')
+          expect(stdout[3])
+             .to.equal('DataSize: 7')
+          done()
+        })
+    })
   })
 
   describe('api running', () => {
@@ -90,6 +107,23 @@ describe('object', () => {
           expect(exitcode).to.equal(0)
           expect(stdout[0])
              .to.equal('added QmZZmY4KCu9r3e7M2Pcn46Fc5qbn6NpzaAGaYb22kbfTqm')
+          done()
+        })
+    })
+
+    it('stat', (done) => {
+      nexpect.spawn('node', [process.cwd() + '/src/cli/bin.js', 'object', 'stat', 'QmZZmY4KCu9r3e7M2Pcn46Fc5qbn6NpzaAGaYb22kbfTqm'])
+        .run((err, stdout, exitcode) => {
+          expect(err).to.not.exist
+          expect(exitcode).to.equal(0)
+          expect(stdout[0])
+             .to.equal('NumLinks: 1')
+          expect(stdout[1])
+             .to.equal('BlockSize: 60')
+          expect(stdout[2])
+             .to.equal('LinksSize: 8')
+          expect(stdout[3])
+             .to.equal('DataSize: 7')
           done()
         })
     })
