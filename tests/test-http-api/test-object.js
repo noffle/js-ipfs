@@ -147,6 +147,46 @@ describe('object', () => {
         })
       })
     })
+
+    describe('/object/stat', () => {
+      it('returns 400 for request without argument', (done) => {
+        api.inject({
+          method: 'GET',
+          url: '/api/v0/object/stat'
+        }, (res) => {
+          expect(res.statusCode).to.equal(400)
+          expect(res.result).to.be.a('string')
+          done()
+        })
+      })
+
+      it('returns 500 for request with invalid argument', (done) => {
+        api.inject({
+          method: 'GET',
+          url: '/api/v0/object/stat?arg=invalid'
+        }, (res) => {
+          expect(res.statusCode).to.equal(500)
+          expect(res.result.Code).to.equal(0)
+          expect(res.result.Message).to.be.a('string')
+          done()
+        })
+      })
+
+      it('returns value', (done) => {
+        api.inject({
+          method: 'GET',
+          url: '/api/v0/object/stat?arg=QmZZmY4KCu9r3e7M2Pcn46Fc5qbn6NpzaAGaYb22kbfTqm'
+        }, (res) => {
+          expect(res.statusCode).to.equal(200)
+          expect(res.result.Hash).to.equal('QmZZmY4KCu9r3e7M2Pcn46Fc5qbn6NpzaAGaYb22kbfTqm')
+          expect(res.result.NumLinks).to.equal(1)
+          expect(res.result.BlockSize).to.equal(60)
+          expect(res.result.LinksSize).to.equal(8)
+          expect(res.result.DataSize).to.equal(7)
+          done()
+        })
+      })
+    })
   })
 
   describe('using js-ipfs-api', () => {
@@ -219,6 +259,34 @@ describe('object', () => {
         ctl.object.put(filePath, 'json', (err, res) => {
           expect(err).not.to.exist
           expect(res).to.deep.equal(expectedResult)
+          done()
+        })
+      })
+    })
+
+    describe('ipfs.object.stat', () => {
+      it('returns error for request without argument', (done) => {
+        ctl.object.stat(null, (err, result) => {
+          expect(err).to.exist
+          done()
+        })
+      })
+
+      it('returns error for request with invalid argument', (done) => {
+        ctl.object.stat('invalid', (err, result) => {
+          expect(err).to.exist
+          done()
+        })
+      })
+
+      it('returns value', (done) => {
+        ctl.object.stat('QmZZmY4KCu9r3e7M2Pcn46Fc5qbn6NpzaAGaYb22kbfTqm', (err, result) => {
+          expect(err).to.not.exist
+          expect(result.Hash).to.equal('QmZZmY4KCu9r3e7M2Pcn46Fc5qbn6NpzaAGaYb22kbfTqm')
+          expect(result.NumLinks).to.equal(1)
+          expect(result.BlockSize).to.equal(60)
+          expect(result.LinksSize).to.equal(8)
+          expect(result.DataSize).to.equal(7)
           done()
         })
       })

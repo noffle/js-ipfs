@@ -37,3 +37,14 @@ api.route({
     handler: resources.object.put.handler
   }
 })
+
+api.route({
+  method: '*',
+  path: '/api/v0/object/stat',
+  config: {
+    pre: [
+      { method: resources.object.stat.parseArgs, assign: 'args' }
+    ],
+    handler: resources.object.stat.handler
+  }
+})

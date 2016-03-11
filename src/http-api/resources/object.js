@@ -11,6 +11,25 @@ const DAGNode = mDAG.DAGNode
 
 exports = module.exports
 
+// common pre request handler that parses the args and returns `key` which is assigned to `request.pre.args`
+exports.parseKey = (request, reply) => {
+  if (!request.query.arg) {
+    return reply("Argument 'key' is required").code(400).takeover()
+  }
+
+  try {
+    return reply({
+      key: new Buffer(bs58.decode(request.query.arg))
+    })
+  } catch (err) {
+    log.error(err)
+    return reply({
+      Message: 'invalid ipfs ref path',
+      Code: 0
+    }).code(500).takeover()
+  }
+}
+
 exports.new = {
   // pre request handler that parses the args and returns `template` which is assigned to `request.pre.args`
   parseArgs: (request, reply) => {
@@ -49,24 +68,8 @@ exports.new = {
 }
 
 exports.get = {
-  // pre request handler that parses the args and returns `key` which is assigned to `request.pre.args`
-  parseArgs: (request, reply) => {
-    if (!request.query.arg) {
-      return reply("Argument 'key' is required").code(400).takeover()
-    }
-
-    try {
-      return reply({
-        key: new Buffer(bs58.decode(request.query.arg))
-      })
-    } catch (err) {
-      log.error(err)
-      return reply({
-        Message: 'invalid ipfs ref path',
-        Code: 0
-      }).code(500).takeover()
-    }
-  },
+  // uses common parseKey method that returns a `key`
+  parseArgs: exports.parseKey,
 
   // main route handler which is called after the above `parseArgs`, but only if the args were valid
   handler: (request, reply) => {
@@ -156,6 +159,35 @@ exports.put = {
           Hash: bs58.encode(link.hash).toString(),
           Size: link.size
         }))
+      })
+    })
+  }
+}
+
+exports.stat = {
+  // uses common parseKey method that returns a `key`
+  parseArgs: exports.parseKey,
+
+  // main route handler which is called after the above `parseArgs`, but only if the args were valid
+  handler: (request, reply) => {
+    const key = request.pre.args.key
+
+    ipfs.object.stat(key, (err, stats) => {
+      if (err) {
+        log.error(err)
+        return reply({
+          Message: 'Failed to get object: ' + err,
+          Code: 0
+        }).code(500)
+      }
+
+      return reply({
+        Hash: bs58.encode(key).toString(),
+        NumLinks: stats.NumLinks,
+        BlockSize: stats.BlockSize,
+        LinksSize: stats.LinksSize,
+        DataSize: stats.DataSize
+        // CumulativeSize: stats.CumulativeSize
       })
     })
   }
