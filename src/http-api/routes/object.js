@@ -22,3 +22,18 @@ api.route({
     handler: resources.object.get.handler
   }
 })
+
+api.route({
+  method: '*',
+  path: '/api/v0/object/put',
+  config: {
+    payload: {
+      parse: false,
+      output: 'stream'
+    },
+    pre: [
+      { method: resources.object.put.parseArgs, assign: 'args' }
+    ],
+    handler: resources.object.put.handler
+  }
+})

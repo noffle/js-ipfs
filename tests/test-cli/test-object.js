@@ -4,7 +4,7 @@ const expect = require('chai').expect
 const nexpect = require('nexpect')
 const httpAPI = require('../../src/http-api')
 
-describe.only('object', () => {
+describe('object', () => {
   describe('api offline', () => {
     it('new', (done) => {
       nexpect.spawn('node', [process.cwd() + '/src/cli/bin.js', 'object', 'new'])
@@ -32,7 +32,7 @@ describe.only('object', () => {
     })
 
     it('put', (done) => {
-      nexpect.spawn('node', [process.cwd() + '/src/cli/bin.js', 'object', 'put', process.cwd() + '/tests/test-cli/node.json'])
+      nexpect.spawn('node', [process.cwd() + '/src/cli/bin.js', 'object', 'put', process.cwd() + '/tests/node.json'])
         .run((err, stdout, exitcode) => {
           expect(err).to.not.exist
           expect(exitcode).to.equal(0)
@@ -84,7 +84,7 @@ describe.only('object', () => {
     })
 
     it('put', (done) => {
-      nexpect.spawn('node', [process.cwd() + '/src/cli/bin.js', 'object', 'put', process.cwd() + '/tests/test-cli/node.json'])
+      nexpect.spawn('node', [process.cwd() + '/src/cli/bin.js', 'object', 'put', process.cwd() + '/tests/node.json'])
         .run((err, stdout, exitcode) => {
           expect(err).to.not.exist
           expect(exitcode).to.equal(0)

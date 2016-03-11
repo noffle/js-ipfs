@@ -2,6 +2,9 @@
 
 const expect = require('chai').expect
 const APIctl = require('ipfs-api')
+const fs = require('fs')
+const FormData = require('form-data')
+const streamToPromise = require('stream-to-promise')
 
 describe('object', () => {
   describe('api', () => {
@@ -78,6 +81,72 @@ describe('object', () => {
         })
       })
     })
+
+    describe('/object/put', () => {
+      it('returns 400 if no node is provided', (done) => {
+        const form = new FormData()
+        const headers = form.getHeaders()
+
+        streamToPromise(form).then((payload) => {
+          api.inject({
+            method: 'POST',
+            url: '/api/v0/object/put',
+            headers: headers,
+            payload: payload
+          }, (res) => {
+            expect(res.statusCode).to.equal(400)
+            done()
+          })
+        })
+      })
+
+      it('returns 500 if the node is invalid', (done) => {
+        const form = new FormData()
+        const filePath = 'tests/badnode.json'
+        form.append('file', fs.createReadStream(filePath))
+        const headers = form.getHeaders()
+
+        streamToPromise(form).then((payload) => {
+          api.inject({
+            method: 'POST',
+            url: '/api/v0/object/put',
+            headers: headers,
+            payload: payload
+          }, (res) => {
+            expect(res.statusCode).to.equal(500)
+            done()
+          })
+        })
+      })
+
+      it('updates value', (done) => {
+        const form = new FormData()
+        const filePath = 'tests/node.json'
+        form.append('data', fs.createReadStream(filePath))
+        const headers = form.getHeaders()
+        const expectedResult = {
+          Hash: 'QmZZmY4KCu9r3e7M2Pcn46Fc5qbn6NpzaAGaYb22kbfTqm',
+          Links: [{
+            Name: 'some link',
+            Hash: 'QmXg9Pp2ytZ14xgmQjYEiHjVjMFXzCVVEcRTWJBmLgR39V',
+            Size: 8
+          }]
+        }
+
+        streamToPromise(form).then((payload) => {
+          api.inject({
+            method: 'POST',
+            url: '/api/v0/object/put',
+            headers: headers,
+            payload: payload
+          }, (res) => {
+            expect(res.statusCode).to.equal(200)
+            expect(res.result).to.deep.equal(expectedResult)
+            done()
+          })
+        })
+      })
+    })
   })
 
   describe('using js-ipfs-api', () => {
@@ -121,6 +190,35 @@ describe('object', () => {
              .to.deep.equal([])
           expect(result.Data)
              .to.equal('')
+          done()
+        })
+      })
+    })
+
+    describe('ipfs.object.put', () => {
+      it('returns error if the node is invalid', (done) => {
+        const filePath = 'tests/badnode.json'
+
+        ctl.object.put(filePath, 'json', (err) => {
+          expect(err).to.exist
+          done()
+        })
+      })
+
+      it('updates value', (done) => {
+        const filePath = 'tests/node.json'
+        const expectedResult = {
+          Hash: 'QmZZmY4KCu9r3e7M2Pcn46Fc5qbn6NpzaAGaYb22kbfTqm',
+          Links: [{
+            Name: 'some link',
+            Hash: 'QmXg9Pp2ytZ14xgmQjYEiHjVjMFXzCVVEcRTWJBmLgR39V',
+            Size: 8
+          }]
+        }
+
+        ctl.object.put(filePath, 'json', (err, res) => {
+          expect(err).not.to.exist
+          expect(res).to.deep.equal(expectedResult)
           done()
         })
       })
