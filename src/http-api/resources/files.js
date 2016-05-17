@@ -1,8 +1,7 @@
 'use strict'
 
 const bs58 = require('bs58')
-// const ndjson = require('ndjson')
-// const async = require('async')
+const ndjson = require('ndjson')
 const Readable = require('stream').Readable
 const multipart = require('ipfs-multipart')
 const debug = require('debug')
@@ -40,45 +39,35 @@ exports.add = {
     var file = false
     var filePair
     const resArr = []
-    // let serialArr
-    // console.log(serialArr)
+    var serialize = ndjson.serialize()
+
+    // hapi doesn't permit object streams
+    // http://hapijs.com/api#replyerr-result
+    serialize._readableState.objectMode = false
+
     var i = request.server.app.ipfs.files.add()
-    // var serialize = ndjson.stringify()
+    var written = 0
 
     i.on('data', (file) => {
-      resArr.push({
+      serialize.write({
         Name: file.path,
         Hash: bs58.encode(file.multihash).toString()
       })
+      written++
     })
 
     i.on('end', () => {
-      if (resArr.length === 0 && file) {
+      if (written === 0 && file) {
         return reply({
           Message: 'Failed to add files',
           Code: 0
         }).code(500)
-      }
-
-      /* serialize.on('data', (line) => {
-        var serialArr = line
-        console.log(line)
-        return reply(serialArr)
-        //console.log(line)
-      })
-
-      async.eachSeries(resArr, (item, callback) => {
-        serialize.write(item)
-        callback()
-      }, (done) => {
+      } else {
         serialize.end()
-      })
-
-      serialize.on('end', () => {
-        //console.log(serialArr.length)
-        //return reply(serialArr)
-      }) */
-      return reply(resArr)
+        return reply(serialize)
+          .header('x-chunked-output', '1')
+          .header('content-type', 'application/json')
+      }
     })
 
     parser.on('file', (fileName, fileStream) => {
